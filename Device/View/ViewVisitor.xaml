@@ -1,0 +1,44 @@
+﻿<Page
+    x:Class="Device.ViewVisitor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Device"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:data="using:Device.ViewModel">
+    <Page.DataContext>
+        <data:ViewVisitorViewModel/>
+    </Page.DataContext>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    Orientation="Vertical">
+            <TextBlock Text="{Binding TestText}" />
+            <Image Name="Visitor" 
+                   Height="300"
+                   Width="300">
+                <Image.Source>
+                    <BitmapImage UriSource="{Binding Image}" CreateOptions="IgnoreImageCache" />
+                </Image.Source>
+            </Image>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Allow" 
+                    Background="Black"
+                    Foreground="White"
+                    Margin="20"
+                    Command="{Binding Allow}"/>
+                <Button Content="Deny"
+                    Background="Black"
+                    Foreground="White"
+                    Margin="20"
+                    Command="{Binding Deny}"/>
+                <Button Content="Refresh"
+                    Background="Black"
+                    Foreground="White"
+                    Margin="20"
+                    Command="{Binding Refresh}"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

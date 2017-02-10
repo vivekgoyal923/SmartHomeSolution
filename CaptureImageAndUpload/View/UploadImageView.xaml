@@ -1,0 +1,26 @@
+﻿<Page
+    x:Class="CaptureImageAndUpload.View.UploadImageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CaptureImageAndUpload.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:data="using:CaptureImageAndUpload.ViewModel">
+    <Page.DataContext>
+        <data:UploadImageViewModel/>
+    </Page.DataContext>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    Orientation="Vertical" 
+                    Background="Gray">
+            <TextBlock Text="{Binding Status}" />
+            <Button Content="Upload File" 
+                    Background="Black"
+                    Foreground="White"
+                    Margin="20"
+                    Command="{Binding UploadImage}"/>
+        </StackPanel>
+    </Grid>
+</Page>
