@@ -12,17 +12,18 @@ namespace SimulatedDevice
 {
     class Program
     {
-
         static DeviceClient deviceClient;
+        static DeviceClient deviceClient2;
         static string iotHubUri = "SmartHomeIoTHub.azure-devices.net";
         static string deviceKey = "TdNTA6opJOsv50uPgjE6C1Mb5cLTyEKsiU63tFtLTVg=";
+        static string deviceKey2 = "P+k5ij9loAaQTNDprAh3CoTVmV/9L0W3ZkamYTDk16k=";
 
         static void Main(string[] args)
         {
             Console.WriteLine("Simulated device\n");
-            deviceClient = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey("myFirstDevice", deviceKey), TransportType.Mqtt);
- 
-            //SendDeviceToCloudMessagesAsync();
+            deviceClient = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey("myFirstDevice", deviceKey), TransportType.Http1);
+            deviceClient2 = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey("mySecondDevice", deviceKey2), TransportType.Http1);
+            SendDeviceToCloudMessagesAsync();
             ReceiveC2dAsync();
             //SendToBlobAsync();
             Console.ReadLine();
@@ -58,14 +59,22 @@ namespace SimulatedDevice
             while (true)
             {
                 Message receivedMessage = await deviceClient.ReceiveAsync();
-                if (receivedMessage == null) continue;
-
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Received message: {0}", Encoding.ASCII.GetString(receivedMessage.GetBytes()));
-                Console.ResetColor();
-
-                await deviceClient.CompleteAsync(receivedMessage);
-                SendNotificationAsync("Visitor.jpg");
+                if (receivedMessage != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Received message: {0}", Encoding.ASCII.GetString(receivedMessage.GetBytes()));
+                    Console.ResetColor();
+                    await deviceClient.CompleteAsync(receivedMessage);
+                }
+                Message receivedMessage2 = await deviceClient2.ReceiveAsync();
+                if (receivedMessage2 != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Received message: {0}", Encoding.ASCII.GetString(receivedMessage2.GetBytes()));
+                    Console.ResetColor();
+                    await deviceClient2.CompleteAsync(receivedMessage2);
+                }
+                //SendNotificationAsync("Visitor.jpg");
             }
         }
         private static async void SendNotificationAsync(string BlobName)

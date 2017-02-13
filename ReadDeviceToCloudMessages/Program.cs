@@ -58,13 +58,21 @@ namespace ReadDeviceToCloudMessages
 
                 var message = JObject.Parse(data);
                 string deviceId = message["deviceId"].ToString();
+                string status = message["status"].ToString();
+                string name = message["name"].ToString();
                 if (deviceId == "myFirstDevice")
                 {
-                    SendNotificationAsync("Visitor.jpg");
+                    if (status == "Match Found")
+                    {
+                        SendAutoNotificationAsync(name);
+                        SendCloudToDeviceMessageAsync("Allow").Wait();
+                    }
+                    else
+                        SendNotificationAsync("Visitor.jpg");
                 }
                 else if(deviceId == "secondDevice")
                 {
-                    string status = message["status"].ToString();
+                    
                     if (status == "allow")
                     {
                         SendCloudToDeviceMessageAsync("Allow").Wait();
@@ -82,6 +90,13 @@ namespace ReadDeviceToCloudMessages
             NotificationHubClient hub = NotificationHubClient
                 .CreateClientFromConnectionString("Endpoint=sb://smarthomenamespace.servicebus.windows.net/;SharedAccessKeyName=DefaultFullSharedAccessSignature;SharedAccessKey=+nY8fngDiGjuWma5CTi3KxEUV/jwyE9GAxv7Nrf4FW0=", "SmartHomeNotificationHub");
             var toast = @"<toast><visual><binding template=""ToastText01""><text id=""1"">New Visitor at your House!! Please Check " + BlobName + "</text></binding></visual></toast>";
+            await hub.SendWindowsNativeNotificationAsync(toast);
+        }
+        private static async void SendAutoNotificationAsync(string name)
+        {
+            NotificationHubClient hub = NotificationHubClient
+                .CreateClientFromConnectionString("Endpoint=sb://smarthomenamespace.servicebus.windows.net/;SharedAccessKeyName=DefaultFullSharedAccessSignature;SharedAccessKey=+nY8fngDiGjuWma5CTi3KxEUV/jwyE9GAxv7Nrf4FW0=", "SmartHomeNotificationHub");
+            var toast = @"<toast><visual><binding template=""ToastText01""><text id=""1"">"+ name +" automatically allowed to enter </text></binding></visual></toast>";
             await hub.SendWindowsNativeNotificationAsync(toast);
         }
         private async static Task SendCloudToDeviceMessageAsync(string message)

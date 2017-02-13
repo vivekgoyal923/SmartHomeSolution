@@ -10,10 +10,28 @@
     <Page.DataContext>
         <data:ViewVisitorViewModel/>
     </Page.DataContext>
+    <ScrollViewer>
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        
         <StackPanel HorizontalAlignment="Center" 
                     VerticalAlignment="Center"
                     Orientation="Vertical">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Enter the group of the Person" VerticalAlignment="Center" Margin="10"/>
+                    <TextBox Text="{Binding GroupName, Mode=TwoWay}" Height="20" Width="150"/>
+                </StackPanel>
+                <StackPanel  Orientation="Horizontal">
+                    <TextBlock Text="Enter the name of the Person"  VerticalAlignment="Center" Margin="10"/>
+                    <TextBox Text="{Binding PersonName, Mode=TwoWay}" Height="20" Width="150"/>
+                </StackPanel>
+                <Button Content="Delete"
+                        HorizontalAlignment="Center"
+                        Background="Black"
+                        Foreground="White"
+                        Margin="10"
+                        Command="{Binding Delete}"/>
+            </StackPanel>
             <TextBlock Text="{Binding TestText}" />
             <Image Name="Visitor" 
                    Height="300"
@@ -39,6 +57,37 @@
                     Margin="20"
                     Command="{Binding Refresh}"/>
             </StackPanel>
+            <StackPanel Orientation="Vertical" 
+                        Visibility="{Binding PermissionStackVisibility}">
+                <TextBlock Text="Give your choice for giving the person access the next time"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Allow Automatically" 
+                        Background="Black"
+                        Foreground="White"
+                        Margin="20"
+                        Command="{Binding AlwaysAllow}"/>
+                    <!--<Button Content="Deny Automatically"
+                        Background="Black"
+                        Foreground="White"
+                        Margin="20"
+                        Command="{Binding AlwaysDeny}"/>-->
+                    <Button Content="Ask Everytime"
+                        Background="Black"
+                        Foreground="White"
+                        Margin="20"
+                        Command="{Binding AlwaysAsk}"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Visibility="{Binding NameStackVisibility}">
+                <TextBlock Text="Enter the name of the Person"  VerticalAlignment="Center" Margin="10"/>
+                <TextBox Text="{Binding PersonName, Mode=TwoWay}" Height="20" Width="150"/>
+                <Button Content="Save"
+                        Background="Black"
+                        Foreground="White"
+                        Margin="20"
+                        Command="{Binding Save}"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
+    </ScrollViewer>
 </Page>

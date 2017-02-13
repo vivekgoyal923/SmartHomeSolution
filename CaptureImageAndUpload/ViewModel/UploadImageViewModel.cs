@@ -16,11 +16,13 @@ using GalaSoft.MvvmLight.Command;
 using Windows.Media.Capture;
 using Windows.Foundation;
 using Windows.Media.MediaProperties;
+using Microsoft.ProjectOxford.Face;
 
 namespace CaptureImageAndUpload.ViewModel
 {
     class UploadImageViewModel:INotifyPropertyChanged
     {
+        FaceServiceClient faceServiceClient;
         static DeviceClient deviceClient;
         static string iotHubUri = "SmartHomeIoTHub.azure-devices.net";
         static string deviceKey = "TdNTA6opJOsv50uPgjE6C1Mb5cLTyEKsiU63tFtLTVg=";
@@ -53,7 +55,7 @@ namespace CaptureImageAndUpload.ViewModel
         {
             deviceClient = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey("myFirstDevice", deviceKey), Microsoft.Azure.Devices.Client.TransportType.Http1);
             storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-
+            faceServiceClient = new FaceServiceClient("fbeb228a7f1943b69c3e6e2861f22ff0");
             ReceiveC2dAsync();
             this.UploadImage = new RelayCommand(UploadImageButtonClick);
             
@@ -86,28 +88,82 @@ namespace CaptureImageAndUpload.ViewModel
         }
 
         private async void SendToBlobAsync()
-        { 
+        {
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
+            //var watch = System.Diagnostics.Stopwatch.StartNew();
+            bool matchFound = false;
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); // Create the blob client.
             CloudBlobContainer container = blobClient.GetContainerReference("imgcontainer"); // Retrieve reference to a previously created container.
             CloudBlockBlob blockBlob = container.GetBlockBlobReference("Visitor.jpg"); // Retrieve reference to a blob named "photo1.jpg".
 
             await blockBlob.UploadFromFileAsync(photo);
-            watch.Stop();
-            Status += "Time to upload file: " + watch.ElapsedMilliseconds + "ms\n";
-
-            var telemetryDataPoint = new
+            //watch.Stop();
+            Status += "Pic Uploaded\n";
+            string personName = "New Visitor";
+            Stream image = await photo.OpenStreamForReadAsync();
+            try
             {
-                deviceId = "myFirstDevice",
-                status = "Pic Uploaded"
-            };
+                var faces = await faceServiceClient.DetectAsync(image);
+                var faceIds = faces.Select(face => face.FaceId).ToArray();
 
-            var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
-            var message = new Message(Encoding.ASCII.GetBytes(messageString));
+                var results = await faceServiceClient.IdentifyAsync("group1", faceIds);
 
-            await deviceClient.SendEventAsync(message);
+                foreach (var identifyResult in results)
+                {
+                    if (identifyResult.Candidates.Length == 0)
+                    {
+                        matchFound = false;
+                    }
+                    else
+                    {
+                        var candidateId = identifyResult.Candidates[0].PersonId;
+                        var person = await faceServiceClient.GetPersonAsync("group1", candidateId);
+                        personName = person.Name;
+                        matchFound = true;
+                        break;
+                    }
+                }
+                if (matchFound)
+                {
+                    var telemetryDataPoint = new
+                    {
+                        deviceId = "myFirstDevice",
+                        status = "Match Found",
+                        name = personName
+                    };
+                    var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
+                    var message = new Message(Encoding.ASCII.GetBytes(messageString));
+
+                    await deviceClient.SendEventAsync(message);
+                }
+                else
+                {
+                    var telemetryDataPoint = new
+                    {
+                        deviceId = "myFirstDevice",
+                        status = "Pic Uploaded",
+                        name = personName
+                    };
+                    var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
+                    var message = new Message(Encoding.ASCII.GetBytes(messageString));
+
+                    await deviceClient.SendEventAsync(message);
+                }
+            }
+            catch
+            {
+                var telemetryDataPoint = new
+                {
+                    deviceId = "myFirstDevice",
+                    status = "Pic Uploaded",
+                    name = personName
+                };
+                var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
+                var message = new Message(Encoding.ASCII.GetBytes(messageString));
+
+                await deviceClient.SendEventAsync(message);
+                Status += "\nThe Image is Not Clear\n";
+            }
         }
         private async void ReceiveC2dAsync()
         {
